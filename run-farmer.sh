@@ -43,7 +43,7 @@ err=$(bash -c 'source "$1" >/dev/null' _ "$CONFIG" 2>&1) && [[ -z "$err" ]] \
 NUMS=(SOFT HARD MAX_SEGMENTS MAX_RETRIES RETRY_WAIT STALL MAX_NUDGES POLL CONTINUE_LIMIT HANDOFF_LIMIT)
 # An environment variable with a key's name wins over the config: save those, source, restore.
 OVR=()
-for k in "${NUMS[@]}" MODEL EFFORT MASTER CLAUDE_ARGS; do
+for k in "${NUMS[@]}" MODEL EFFORT ADVISOR_MODEL ADVISOR_EFFORT MASTER CLAUDE_ARGS; do
   [[ -n "${!k+x}" ]] && OVR+=("$k=${!k}")
 done
 source "$CONFIG"
@@ -55,7 +55,7 @@ for k in "${NUMS[@]}"; do
   [[ -n "${!k+x}" ]] || { echo "$k missing in $CONFIG" >&2; exit 1; }
   [[ "${!k}" =~ ^[0-9]+$ ]] || { echo "$k must be a whole number, got: ${!k}" >&2; exit 1; }
 done
-for k in MODEL EFFORT MASTER; do
+for k in MODEL EFFORT ADVISOR_MODEL ADVISOR_EFFORT MASTER; do
   [[ -n "${!k+x}" ]] || { echo "$k missing in $CONFIG" >&2; exit 1; }
 done
 [[ -n "$MASTER" && "$MASTER" != /* ]] && MASTER="$HERE/$MASTER"
@@ -71,6 +71,8 @@ fi
 if [[ -n "$MASTER" ]]; then
   [[ -f "$MASTER" ]] || { echo "Master prompt not found: $MASTER" >&2; exit 1; }
   TEMPLATE=$(cat "$MASTER")
+  TEMPLATE=${TEMPLATE//"{{ADVISOR_MODEL}}"/$ADVISOR_MODEL}
+  TEMPLATE=${TEMPLATE//"{{ADVISOR_EFFORT}}"/$ADVISOR_EFFORT}
   [[ "$TEMPLATE" == *"{{INPUT}}"* ]] || { echo "No {{INPUT}} placeholder in $MASTER" >&2; exit 1; }
   PROMPT="${TEMPLATE%%\{\{INPUT\}\}*}${INPUT}${TEMPLATE#*\{\{INPUT\}\}}"
 else
