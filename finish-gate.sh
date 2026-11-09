@@ -1,6 +1,6 @@
 #!/bin/bash
 # Stop: runs whenever the main agent wants to stop. In order:
-#  1. agents still running   → let it stop; their task notifications wake the main agent again
+#  1. work still running     → let it stop; their task notifications wake the main agent again
 #  2. last message has the completion signal → mark COMPLETE, close the session
 #  3. threshold first crossed here → wind-down warning
 #  4. in wind-down           → have it write the handoff; close once written
@@ -21,12 +21,12 @@ block() {  # block <counter-file> <limit> <log-label> <message>
 transcript=$(jq -r .transcript_path <<<"$input"); echo "$transcript" > "$S/transcript"  # run-farmer.sh reads it
 used=$("$H/ctx.sh" "$transcript"); used=${used:-0}
 
-# Running agents: from the hook input when present, else from the subagents' meta.json files.
-if jq -e 'has("background_tasks")' <<<"$input" >/dev/null; then
-  inflight=$(jq -r '.background_tasks[]? | select(.status=="running" and (.type|test("agent|workflow"))) | .description' <<<"$input")
-else
-  inflight=$("$H/inflight.sh" "$transcript")
-fi
+# Running work: every running background task in the hook input (agents, workflows, shell
+# commands, monitors), plus the subagents' meta.json files, which also list a subagent whose
+# parent agent has already finished.
+inflight=$( { jq -r '.background_tasks[]? | select(.status=="running")
+                | .description // .type // "task"' <<<"$input" 2>/dev/null
+              "$H/inflight.sh" "$transcript"; } | sed '/^$/d')
 if [[ -n "$inflight" ]]; then
   # Record a threshold crossing now; the warning goes out once the agents are back.
   (( used > UA_SOFT )) && [[ ! -f "$S/wind-down" ]] && touch "$S/wind-down"
