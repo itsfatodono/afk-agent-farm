@@ -21,12 +21,6 @@ MASTER="afk.prompt.md"
 MODEL=opus
 EFFORT=medium
 
-# The advisor: a fresh agent the coordinator and its orchestrators ask for every judgment
-# call, instead of deciding it themselves. A model the project's CLAUDE.md names for an
-# advisor wins over these. They fill {{ADVISOR_MODEL}} and {{ADVISOR_EFFORT}} in MASTER.
-ADVISOR_MODEL="Opus 5.5"
-ADVISOR_EFFORT=xhigh
-
 # Anything else you'd pass on the claude command line, as a bash array: one item per
 # argument, quote an item that contains spaces, e.g.
 #   CLAUDE_ARGS=(--append-system-prompt "Keep reports short.")

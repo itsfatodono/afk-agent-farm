@@ -2,7 +2,7 @@
 
 I'm going AFK; finish the jobs I named above.
 you only coordinate, so your context stays clean.
-Make no judgment call yourself: ask a fresh advisor agent (the model CLAUDE.md names for an advisor, else {{ADVISOR_MODEL}} at {{ADVISOR_EFFORT}} effort) and follow its answer; steps the repo's rules already settle need none.
+Make no judgment call yourself: ask a fresh advisor agent (the model CLAUDE.md names for an advisor, else Opus 5.5 at xhigh) and follow its answer; steps the repo's rules already settle need none.
 Give it the question and the sources, not your conclusion; it judges the risk and returns its decision. Log it in wiki/afk-decisions.md, the risky ones under "Deferred to user", and never wait.
 Tell every orchestrator you dispatch to do the same.
 If a ticket fails the same way three times, mark it blocked and move on.
