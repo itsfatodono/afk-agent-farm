@@ -32,7 +32,7 @@ This version only works with **[Matt Pocock's skills](https://github.com/mattpoc
    - **It's really stuck.** You get a herdr notification instead of a night of burned tokens.
 
    The work keeps going from one segment to the next. It doesn't run forever, though: it stops when the agent emits `<promise>COMPLETE</promise>`, or after `MAX_SEGMENTS` segments (default 20) so a run that never converges can't burn tokens all night.
-4. **Review in the morning.** Read `wiki/afk-decisions.md` in your project. Every judgment call made without you is there, each decided by a fresh advisor agent (Opus 5.5 at xhigh unless your CLAUDE.md or AGENTS.md names another model), not by the coordinator. The ones the advisor calls risky, and any proposed changes to skills or agent definitions, sit under **"Deferred to user"**. Tickets that failed the same way three times are marked blocked rather than retried forever.
+4. **Review in the morning.** Read `wiki/afk-decisions.md` in your project. Every judgment call made without you is there, each decided by a fresh advisor agent (model and effort from your CLAUDE.md), not by the coordinator. The ones the advisor calls risky, and any proposed changes to skills or agent definitions, sit under **"Deferred to user"**. Tickets that failed the same way three times are marked blocked rather than retried forever.
 
 ## How it works
 
