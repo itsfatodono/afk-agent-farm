@@ -32,12 +32,12 @@ This version only works with **[Matt Pocock's skills](https://github.com/mattpoc
    - **It's really stuck.** You get a herdr notification instead of a night of burned tokens.
 
    The work keeps going from one segment to the next. It doesn't run forever, though: it stops when the agent emits `<promise>COMPLETE</promise>`, or after `MAX_SEGMENTS` segments (default 20) so a run that never converges can't burn tokens all night.
-4. **Review in the morning.** Read `wiki/afk-decisions.md` in your project. Every call the agent made alone is there. The risky ones, and any proposed changes to skills or agent definitions, sit under **"Deferred to user"**. Tickets that failed the same way three times are marked blocked rather than retried forever.
+4. **Review in the morning.** Read `wiki/afk-decisions.md` in your project. Every judgment call made without you is there, each decided by a fresh advisor agent (Opus 5.5 at xhigh unless your CLAUDE.md or AGENTS.md names another model), not by the coordinator. The ones the advisor calls risky, and any proposed changes to skills or agent definitions, sit under **"Deferred to user"**. Tickets that failed the same way three times are marked blocked rather than retried forever.
 
 ## How it works
 
 1. **Take a look at `config.sh`.** The defaults are battle-tested. Change only what doesn't fit you; each setting has a comment explaining it.
-2. **Take a look at `afk.prompt.md`.** These are the agent's rules for the night (don't wait for you, log decisions, give up on a ticket after three identical failures). Edit them if you want different ones.
+2. **Take a look at `afk.prompt.md`.** These are the agent's rules for the night (don't wait for you, hand every judgment call to an advisor agent, log decisions, give up on a ticket after three identical failures). Edit them if you want different ones.
 3. **Run `run-farmer.sh` inside herdr, from your project folder.** The agent opens in the pane next to it; `Ctrl-C` stops the loop, `/exit` in the pane stops the agent.
 4. **Example prompt:**
 
