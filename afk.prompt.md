@@ -1,6 +1,6 @@
 /chief-of-staff {{INPUT}}
 
-I'm going AFK; finish the jobs I named above.
+I'm going AFK; finish the work I asked for above and what it unblocks. The goal is done only when none of it is left to start; a context limit or a segment close never ends it.
 you only coordinate, so your context stays clean.
 Make no judgment call yourself: ask a fresh advisor agent (its model and effort as CLAUDE.md names them) and follow its answer; steps the repo's rules already settle need none.
 Give it the question and the sources, not your conclusion; it judges the risk and returns its decision. Log it in wiki/afk-decisions.md, the risky ones under "Deferred to user", and never wait.

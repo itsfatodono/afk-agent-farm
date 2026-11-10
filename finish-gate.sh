@@ -1,9 +1,11 @@
 #!/bin/bash
 # Stop: runs whenever the main agent wants to stop. In order:
 #  1. work still running     → let it stop; their task notifications wake the main agent again
-#  2. last message has the completion signal → mark COMPLETE, close the session
+#  2. last message has the completion signal, not in wind-down → mark COMPLETE, close
 #  3. threshold first crossed here → wind-down warning
-#  4. in wind-down           → have it write the handoff; close once written
+#  4. in wind-down           → have it write the handoff; close once written. The signal
+#     counts for nothing here: a context limit is no reason to call the goal done, so a
+#     goal that really is done goes through one short segment that confirms it.
 #  5. none of the above      → "keep going or emit the signal" (a segment can't end silently)
 [[ -n "${UA_SEG_DIR:-}" ]] || exit 0
 input=$(cat)
@@ -41,7 +43,8 @@ last=$(jq -r '.last_assistant_message // empty' <<<"$input")
 [[ -n "$last" ]] || last=$(tail -r "$transcript" 2>/dev/null \
   | jq -r 'select(.type=="assistant" and (.isSidechain|not)) | [.message.content[]? | select(.type=="text") | .text] | join("\n") | select(length>0)' 2>/dev/null \
   | head -c 20000)
-if grep -qF "$SIGNAL" <<<"$last"; then
+ref=""; [[ -f "$S/wind-down" ]] && ref="$S/wind-down"; [[ -f "$S/emergency" ]] && ref="$S/emergency"
+if [[ -z "$ref" ]] && grep -qF "$SIGNAL" <<<"$last"; then
   touch "$S/COMPLETE"; close "COMPLETE" "Goal complete."
 fi
 
@@ -52,8 +55,9 @@ fi
 
 ref=""; [[ -f "$S/wind-down" ]] && ref="$S/wind-down"; [[ -f "$S/emergency" ]] && ref="$S/emergency"
 if [[ -n "$ref" ]]; then
+  grep -qF "$SIGNAL" <<<"$last" && log "used=$used signal ignored in wind-down"
   [[ -f "$UA_HANDOFF" && "$UA_HANDOFF" -nt "$ref" ]] && close "handoff ok" "Handoff written, closing this segment."
-  block handoff-blocks "${UA_HANDOFF_LIMIT:-5}" "block handoff" "This segment is closing. Read ~/.agents/skills/handoff/SKILL.md and follow it, except save the document to exactly this path instead of \$TMPDIR: $UA_HANDOFF . A new segment will continue from it. End your turn once it is written. EXCEPTION: if the goal is fully done, write no handoff; put $SIGNAL on its own line in your last message and end your turn. Don't invent work."
+  block handoff-blocks "${UA_HANDOFF_LIMIT:-5}" "block handoff" "This segment is closing. Read ~/.agents/skills/handoff/SKILL.md and follow it, except save the document to exactly this path instead of \$TMPDIR: $UA_HANDOFF . A new segment will continue from it with the same goal. Reaching the context limit does not end the goal: list every part of it still open, including work that is ready but not started. If you believe the goal is fully done, say so in the handoff with the evidence; the next segment checks it and ends the run. End your turn once it is written."
 fi
 
 block continue-blocks "${UA_CONTINUE_LIMIT:-10}" "block continue" "You are running unattended; nobody will answer. If work on the goal remains, don't stop: decide for yourself and carry on. If the goal is fully done, put $SIGNAL on its own line in your last message. Don't invent work."

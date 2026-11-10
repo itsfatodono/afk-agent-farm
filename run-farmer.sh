@@ -209,7 +209,13 @@ for (( seg=1; seg<=MAX_SEGMENTS; seg++ )); do
         continue
       fi
       say "idle ${STALL}s with no agents running, nudging ($nudges/$MAX_NUDGES)"
-      msg="[unattended] You've been idle for a while with no agents running. If you're waiting on a background task, check on it. Otherwise carry on with the goal; if it's fully done, put $SIGNAL on its own line in your last message."
+      if [[ -f "$UA_SEG_DIR/wind-down" || -f "$UA_SEG_DIR/emergency" ]]; then
+        # Wind-down: the only way out is the handoff; offering the signal here ended a run
+        # with ready work untouched (2026-11-10).
+        msg="[unattended] You've been idle for a while with no agents running. If you're waiting on a background task, check on it and process its result. Then end your turn; the handoff instructions follow."
+      else
+        msg="[unattended] You've been idle for a while with no agents running. If you're waiting on a background task, check on it. Otherwise carry on with the goal; if it's fully done, put $SIGNAL on its own line in your last message."
+      fi
     fi
     herdr agent prompt "$NAME" "$msg" >/dev/null 2>&1 || say "couldn't send the nudge"
   done

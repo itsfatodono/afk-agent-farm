@@ -13,10 +13,10 @@ echo "$(date +%T) post used=$used" >> "$UA_SEG_DIR/hooks.log"
 msg=""
 if (( used > UA_HARD )) && [[ ! -f "$UA_SEG_DIR/emergency" ]]; then
   touch "$UA_SEG_DIR/emergency"
-  msg="[unattended] Context is at ${used} tokens, past the emergency threshold of ${UA_HARD}. Start no new work. Tell your running agents to stop where they are and save their work as WIP, wait for their reports, then end your turn. Handoff instructions will follow."
+  msg="[unattended] Context is at ${used} tokens, past the emergency threshold of ${UA_HARD}. Start no new work. Tell your running agents to stop where they are and save their work as WIP, wait for their reports, then end your turn. Handoff instructions will follow; a new segment continues the goal, so this is not the end of it."
 elif (( used > UA_SOFT )) && [[ ! -f "$UA_SEG_DIR/wind-down" ]]; then
   touch "$UA_SEG_DIR/wind-down"
-  msg="[unattended] Context is at ${used} tokens, past the threshold of ${UA_SOFT}. Start no new work. Finish what you have in hand, including running agents, and process their results. When everything is done, end your turn. Handoff instructions will follow."
+  msg="[unattended] Context is at ${used} tokens, past the threshold of ${UA_SOFT}. Start no new work. Finish what you have in hand, including running agents, and process their results. When everything is done, end your turn. Handoff instructions will follow; a new segment continues the goal, so this is not the end of it."
 fi
 [[ -n "$msg" ]] || exit 0
 echo "$(date +%T) WARN ${msg:0:70}" >> "$UA_SEG_DIR/hooks.log"
