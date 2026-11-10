@@ -108,7 +108,7 @@ Every run writes to `runs/<project>-<timestamp>-<pid>/`, next to the scripts:
 | `finish-gate.sh` | `Stop` hook. Decides whether the agent may stop, must keep going, or must write the handoff. |
 | `soft-warn.sh` | `PostToolUse` hook. Warns the coordinator once its context passes `SOFT` / `HARD`. |
 | `ctx.sh` | Reads the coordinator's current context size from its transcript. Subagents don't count. |
-| `inflight.sh` | Lists subagents that are still running, so a session waiting on them isn't treated as idle. |
+| `inflight.sh` | The one list of running work, for both the stop hook and the outer loop: background tasks recorded at the agent's last stop, plus subagents still running. A session waiting on any of them isn't treated as idle. |
 | `overrides.sh` | Picks up live `/soft` and `/hard` changes during a run. |
 
 Each segment gets its own `settings.json` holding the hooks, so the hooks are active only in the unattended session and never touch your normal Claude Code sessions.

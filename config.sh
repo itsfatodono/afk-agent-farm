@@ -71,6 +71,13 @@ HANDOFF_LIMIT=5
 # so this can stay short.
 STALL=600
 
+# Background tasks (a shell command, a monitor) are seen only by the stop hook, which records
+# them at each stop so the idle check above counts them too. Finishing one wakes the agent and
+# its next stop updates the record. Should that wake never come, a record older than this many
+# seconds stops counting, so the nudges can still fire. Keep it above your longest background
+# command (a full test run, say); subagents are tracked separately and never time out.
+TASK_MAX=3600
+
 # If this many nudges in a row didn't get it moving, another won't. The loop stops nudging
 # and sends you a notification. The count starts over once agents run again.
 MAX_NUDGES=3

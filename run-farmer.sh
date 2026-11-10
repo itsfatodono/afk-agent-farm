@@ -40,7 +40,7 @@ CONFIG=${CONFIG:-$HERE/config.sh}
 # Trial run in a subshell first: bash 3.2's `bash -n` misses some errors (an unclosed "(").
 err=$(bash -c 'source "$1" >/dev/null' _ "$CONFIG" 2>&1) && [[ -z "$err" ]] \
   || { echo "Error in $CONFIG: ${err:-it exited non-zero}" >&2; exit 1; }
-NUMS=(SOFT HARD MAX_SEGMENTS MAX_RETRIES RETRY_WAIT STALL MAX_NUDGES POLL CONTINUE_LIMIT HANDOFF_LIMIT)
+NUMS=(SOFT HARD MAX_SEGMENTS MAX_RETRIES RETRY_WAIT STALL MAX_NUDGES POLL CONTINUE_LIMIT HANDOFF_LIMIT TASK_MAX)
 # An environment variable with a key's name wins over the config: save those, source, restore.
 OVR=()
 for k in "${NUMS[@]}" MODEL EFFORT MASTER CLAUDE_ARGS; do
@@ -128,6 +128,7 @@ last_api_error() {
 write_settings() {
   local envp="UA_SEG_DIR=$(q "$UA_SEG_DIR") UA_HANDOFF=$(q "$UA_HANDOFF") UA_SOFT=$SOFT UA_HARD=$HARD"
   envp+=" UA_CONTINUE_LIMIT=$CONTINUE_LIMIT UA_HANDOFF_LIMIT=$HANDOFF_LIMIT"
+  envp+=" UA_TASK_MAX=$TASK_MAX"
   jq -n --arg post "$envp $(q "$HERE/soft-warn.sh")" --arg stop "$envp $(q "$HERE/finish-gate.sh")" \
     '{hooks: {PostToolUse: [{hooks: [{type: "command", command: $post}]}],
               Stop:        [{hooks: [{type: "command", command: $stop}]}]}}' > "$UA_SEG_DIR/settings.json"
@@ -160,6 +161,7 @@ end_session() {
 }
 
 prev=""
+export UA_TASK_MAX=$TASK_MAX  # inflight.sh, called from this loop
 for (( seg=1; seg<=MAX_SEGMENTS; seg++ )); do
   export UA_SEG_DIR="$RUN_DIR/seg-$(printf %02d $seg)"; mkdir -p "$UA_SEG_DIR"
   export UA_HANDOFF="$UA_SEG_DIR/handoff.md"
@@ -189,7 +191,7 @@ for (( seg=1; seg<=MAX_SEGMENTS; seg++ )); do
 
     # idle: fine while agents run, the session wakes when they report back
     t=$(cat "$UA_SEG_DIR/transcript" 2>/dev/null)
-    [[ -n "$t" && -n "$("$HERE/inflight.sh" "$t")" ]] && { idle_since=""; nudges=0; gave_up=""; continue; }
+    [[ -n "$("$HERE/inflight.sh" "$t" "$UA_SEG_DIR")" ]] && { idle_since=""; nudges=0; gave_up=""; continue; }
     [[ -n "$idle_since" ]] || idle_since=$(date +%s)
     (( $(date +%s) - idle_since >= STALL )) || continue
     idle_since=""

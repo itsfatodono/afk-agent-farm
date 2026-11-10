@@ -23,12 +23,10 @@ block() {  # block <counter-file> <limit> <log-label> <message>
 transcript=$(jq -r .transcript_path <<<"$input"); echo "$transcript" > "$S/transcript"  # run-farmer.sh reads it
 used=$("$H/ctx.sh" "$transcript"); used=${used:-0}
 
-# Running work: every running background task in the hook input (agents, workflows, shell
-# commands, monitors), plus the subagents' meta.json files, which also list a subagent whose
-# parent agent has already finished.
-inflight=$( { jq -r '.background_tasks[]? | select(.status=="running")
-                | .description // .type // "task"' <<<"$input" 2>/dev/null
-              "$H/inflight.sh" "$transcript"; } | sed '/^$/d')
+# Running work: record the hook input's background tasks for run-farmer.sh (atomic write), then
+# read the one list both scripts use (inflight.sh).
+jq '.background_tasks // []' <<<"$input" > "$S/.tasks.tmp" 2>/dev/null && mv "$S/.tasks.tmp" "$S/tasks.json"
+inflight=$("$H/inflight.sh" "$transcript" "$S" | sed '/^$/d')
 if [[ -n "$inflight" ]]; then
   # Record a threshold crossing now; the warning goes out once the agents are back.
   (( used > UA_SOFT )) && [[ ! -f "$S/wind-down" ]] && touch "$S/wind-down"
